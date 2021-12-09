@@ -13,7 +13,9 @@ Clone this repository and copy personal env.py into repo to run (personal valid 
 
 ### Wrangle
 
-* Write modules with functions that acquire, prepare and split the data. -Import modules into notebook and test functions -Document individual reasons for data prep
+* Write modules with functions that acquire, prepare and split the data. 
+    * Import modules into notebook and test functions
+    * Document individual reasons for data prep
 
 ### Explore
 
