@@ -9,6 +9,12 @@ We want to be able to predict the property tax assessed values of single-family 
 ## Steps to Reproduce
 Clone this repository and copy personal env.py into repo to run (personal valid credentials necessary). Libraries used are numpy, pandas, matplotlib, seaborn and sklearn.
 
+## Initial Questions
+1. Why do some properties have a much higher value than others when they are located so close to each other?
+2. Why are some properties valued so differently than others when they have nearly the same physical attributes but only differ in location?
+3. Is having one bathroom worse than having two bedrooms?
+4. What are my best features?
+
 ## The Plan
 
 ### Wrangle
