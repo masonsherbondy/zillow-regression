@@ -9,14 +9,15 @@ def acq_zillow_nadir():
         
     '''
     This function reads the data from a relational database into a dataframe and writes my initial dataframe to a .csv (in case the kernel gotta go)
-    TL; DR: This function acquires the data.
+    TL; DR: This function acquires my data.
     '''
     
     #define my sql query
     sql = '''
-    SELECT bathroomcnt, bedroomcnt, calculatedfinishedsquarefeet, taxvaluedollarcnt
+    SELECT parcelid, fips, bathroomcnt, bedroomcnt, calculatedfinishedsquarefeet, taxvaluedollarcnt
     FROM predictions_2017
     LEFT JOIN properties_2017 USING(parcelid)
+    JOIN propertylandusetype USING(propertylandusetypeid)
     WHERE propertylandusetypeid = 261 or propertylandusetypeid = 279
     '''
 
@@ -49,12 +50,18 @@ def clean_zillow_nadir():
     zillow_nadir = acq_zillow_nadir()
 
     #rename columns
-    zillow_nadir = zillow_nadir.rename(columns = {'bathroomcnt': 'bathroom_count',
-                  'bedroomcnt': 'bedroom_count',
-                  'calculatedfinishedsquarefeet': 'square_footage',
-                  'taxvaluedollarcnt': 'tax_value'
-                  })
-
+    zillow_nadir = zillow_nadir.rename(columns = {'parcelid': 'parcel_id',
+                          'fips': 'fips_id',
+                          'bathroomcnt': 'bathroom_count',
+                          'bedroomcnt': 'bedroom_count',
+                          'calculatedfinishedsquarefeet': 'square_footage',
+                          'taxvaluedollarcnt': 'tax_value'
+                          })
+    #set index to unique parcel ID and reduce noise on fips ID
+    zillow_nadir = zillow_nadir.set_index('parcel_id')
+    zillow_nadir.fips_id = zillow_nadir.fips_id.astype(int)
+    
+    
     #drop rows where values are missing (less than 0.2% of observations)
     zillow_nadir = zillow_nadir[zillow_nadir.square_footage.notnull()]
     zillow_nadir = zillow_nadir[zillow_nadir.tax_value.notnull()]
