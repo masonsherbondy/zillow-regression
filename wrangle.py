@@ -74,23 +74,22 @@ def clean_zillow_nadir():
     zillow_nadir = zillow_nadir.rename(columns = {
         'parcelid': 'parcel_id',
         'fips': 'fips_id',
-        'zipregionid': 'zip_code',
+        'regionidzip': 'zip_code',
         'bathroomcnt': 'bathroom_count',
         'bedroomcnt': 'bedroom_count',
         'calculatedfinishedsquarefeet': 'square_footage',
         'taxvaluedollarcnt': 'tax_value'
         })
 
-    #set index to unique parcel ID and reduce noise on region identifiers
-    zillow_nadir = zillow_nadir.set_index('parcel_id')
-    zillow_nadir.fips_id = zillow_nadir.fips_id.astype(int)
-    zillow_nadir['zip_code'] = zillow_nadir['zip_code'].astype(int)
-    
-    
     #drop rows where values are missing (less than 0.2% of observations)
     zillow_nadir = zillow_nadir[zillow_nadir.square_footage.notnull()]
     zillow_nadir = zillow_nadir[zillow_nadir.zip_code.notnull()]
     zillow_nadir = zillow_nadir[zillow_nadir.tax_value.notnull()]
+
+    #set index to unique parcel ID and reduce noise on region identifiers
+    zillow_nadir = zillow_nadir.set_index('parcel_id')
+    zillow_nadir.fips_id = zillow_nadir.fips_id.astype(int)
+    zillow_nadir.zip_code = zillow_nadir.zip_code.astype(int)
     
     #define numeric columns
     quant_vars = ['bathroom_count', 'bedroom_count', 'square_footage', 'tax_value']
