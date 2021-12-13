@@ -37,7 +37,7 @@ def regression_errors(y, y_hat):
     SSE = residuals_squared.sum()
     
     #explained sum of squares
-    ESS = sum((y_hat - y.mean())**2)
+    ESS = sum((y_hat - y.mean()) ** 2)
     
     #total sum of squares
     TSS = ESS + SSE
@@ -96,7 +96,7 @@ def better_than_baseline(y, y_hat):
     SSE = residuals_squared.sum()
     
     #explained sum of squares
-    ESS = sum((y_hat - y.mean())**2)
+    ESS = sum((y_hat - y.mean()) ** 2)
     
     #total sum of squares
     TSS = ESS + SSE
@@ -124,3 +124,39 @@ def better_than_baseline(y, y_hat):
     
     #return bool True if mine model is better; return bool False if no
     return RMSE < RMSE_baseline
+
+
+def compare_train_validate_errors(y_train, y_validate, train_pred, validate_pred):
+    #calculate residuals
+    residuals = y_train - train_pred
+    
+    #residuals squared
+    residuals_squared = residuals ** 2
+    
+    #sum of squared errors
+    train_SSE = residuals_squared.sum()
+    
+    #mean of squared errors
+    train_MSE = train_SSE / len(y_train)
+    
+    #root of mean of squared errors
+    train_RMSE = train_MSE ** (1/2)
+    
+    ### calculate residuals for validate
+    residuals = y_validate - validate_pred
+    
+    #residuals squared
+    residuals_squared = residuals ** 2
+    
+    #sum of squared errors
+    validate_SSE = residuals_squared.sum()
+    
+    #mean of squared errors
+    validate_MSE = validate_SSE / len(y_validate)
+    
+    #root of mean of squared errors
+    validate_RMSE = validate_MSE ** (1/2)
+    
+    print(f'Train RMSE: {round(train_RMSE, 2)}')
+    print(f'Validate RMSE: {round(validate_RMSE, 2)}')
+    print(f'Difference: {round(validate_RMSE - train_RMSE, 2)}')
