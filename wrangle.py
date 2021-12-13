@@ -14,7 +14,7 @@ def acq_zillow_nadir():
     
     #define my sql query
     sql = '''
-    SELECT parcelid, fips, bathroomcnt, bedroomcnt, calculatedfinishedsquarefeet, taxvaluedollarcnt
+    SELECT parcelid, fips, regionidzip, bathroomcnt, bedroomcnt, calculatedfinishedsquarefeet, taxvaluedollarcnt
     FROM predictions_2017
     LEFT JOIN properties_2017 USING(parcelid)
     JOIN propertylandusetype USING(propertylandusetypeid)
@@ -39,10 +39,31 @@ def acq_zillow_nadir():
     return df
 
 
+def remove_outliers(df, k, col_list):
+    ''' 
+    Removes outliers from a list of columns in a dataframe and returns the dataframe.
+    '''
+    
+    for col in col_list:
+
+        q1, q3 = df[col].quantile([.25, .75])  # get quartiles
+        
+        iqr = q3 - q1   # calculate interquartile range
+        
+        upper_bound = q3 + k * iqr   # get upper bound
+        lower_bound = q1 - k * iqr   # get lower bound
+
+        # return dataframe without outliers
+        
+        df = df[(df[col] > lower_bound) & (df[col] < upper_bound)]
+        
+    return df
+
+
 def clean_zillow_nadir():
 
     '''
-    This function acquires my zillow data, drops any observations where the values are missing, and renames the columns so that they are easier to work with.
+    This function acquires my zillow data, renames the columns so that they are easier to work with, drops any observations where the values are missing and drops outliers from the dataframe. 
     TL; DR: This function cleans my data.
     '''
 
@@ -50,22 +71,33 @@ def clean_zillow_nadir():
     zillow_nadir = acq_zillow_nadir()
 
     #rename columns
-    zillow_nadir = zillow_nadir.rename(columns = {'parcelid': 'parcel_id',
-                          'fips': 'fips_id',
-                          'bathroomcnt': 'bathroom_count',
-                          'bedroomcnt': 'bedroom_count',
-                          'calculatedfinishedsquarefeet': 'square_footage',
-                          'taxvaluedollarcnt': 'tax_value'
-                          })
-    #set index to unique parcel ID and reduce noise on fips ID
+    zillow_nadir = zillow_nadir.rename(columns = {
+        'parcelid': 'parcel_id',
+        'fips': 'fips_id',
+        'zipregionid': 'zip_code',
+        'bathroomcnt': 'bathroom_count',
+        'bedroomcnt': 'bedroom_count',
+        'calculatedfinishedsquarefeet': 'square_footage',
+        'taxvaluedollarcnt': 'tax_value'
+        })
+
+    #set index to unique parcel ID and reduce noise on region identifiers
     zillow_nadir = zillow_nadir.set_index('parcel_id')
     zillow_nadir.fips_id = zillow_nadir.fips_id.astype(int)
+    zillow_nadir['zip_code'] = zillow_nadir['zip_code'].astype(int)
     
     
     #drop rows where values are missing (less than 0.2% of observations)
     zillow_nadir = zillow_nadir[zillow_nadir.square_footage.notnull()]
+    zillow_nadir = zillow_nadir[zillow_nadir.zip_code.notnull()]
     zillow_nadir = zillow_nadir[zillow_nadir.tax_value.notnull()]
     
+    #define numeric columns
+    quant_vars = ['bathroom_count', 'bedroom_count', 'square_footage', 'tax_value']
+
+    #remove outliers
+    zillow_nadir = remove_outliers(zillow_nadir, 1.5, quant_vars)
+
     #return cleaned data
     return zillow_nadir
     
@@ -73,7 +105,7 @@ def clean_zillow_nadir():
 def prep_zillow_nadir():
 
     '''
-    This function acquires my zillow mvp data, cleans it, and returns my train, validate and test data sets for exploration and modeling.
+    This function acquires my zillow mvp data, cleans it, and returns my train, validate and test data sets for exploration.
     '''
 
     #clean the dataframe
